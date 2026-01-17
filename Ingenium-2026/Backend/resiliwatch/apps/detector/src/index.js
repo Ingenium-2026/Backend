@@ -46,6 +46,7 @@ app.get('/settings', (req, res) => {
 // Simulation Routes
 app.post('/simulate/:type', (req, res) => {
     const { type } = req.params;
+    console.log(`[API] Received simulation request: ${type}`);
     let script = '';
 
     switch (type) {
@@ -56,14 +57,15 @@ app.post('/simulate/:type', (req, res) => {
     }
 
     const scriptPath = path.resolve(__dirname, '../../../scripts', script);
-    console.log(`Starting simulation: ${script}`);
+    console.log(`[API] Triggering script: ${scriptPath}`);
 
     exec(`node ${scriptPath}`, (error, stdout, stderr) => {
         if (error) {
-            console.error(`Simulation error: ${error}`);
-            return;
+            console.error(`[Simulation Error] ${error}`);
+            // Note: We don't return here because we want to see output if any
         }
-        console.log(`Simulation output: ${stdout}`);
+        if (stdout) console.log(`[Simulation Output] ${stdout}`);
+        if (stderr) console.error(`[Simulation Stderr] ${stderr}`);
     });
 
     res.send(`Simulation ${type} started`);
@@ -163,8 +165,14 @@ subscribe((state) => {
 
 // Also emit valid telemetry for "feed"
 // RingBuffer onPush
+// THROTTLE: Only emit 1 event every 1000ms to prevent UI lag during attacks
+let lastTelemetryEmit = 0;
 ringBuffer.onPush((event) => {
-    io.emit('telemetry_event', event);
+    const now = Date.now();
+    if (now - lastTelemetryEmit > 1000) { // Max 1 update per second
+        io.emit('telemetry_event', event);
+        lastTelemetryEmit = now;
+    }
 });
 
 server.listen(config.PORT, () => {

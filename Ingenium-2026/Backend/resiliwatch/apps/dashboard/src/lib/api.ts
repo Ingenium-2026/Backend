@@ -78,19 +78,34 @@ export interface Metrics {
 }
 
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${DETECTOR_BASE_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  });
+  const url = `${DETECTOR_BASE_URL}${endpoint}`;
+  console.log(`[API] Fetching: ${url}`);
   
-  if (!response.ok) {
-    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+    });
+    
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`API Error: ${response.status} ${response.statusText} - ${text}`);
+    }
+    
+    // Check if response is JSON
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.indexOf("application/json") !== -1) {
+        return response.json();
+    } else {
+        return response.text() as unknown as T;
+    }
+  } catch (error) {
+    console.error(`[API] Request Failed: ${endpoint}`, error);
+    throw error;
   }
-  
-  return response.json();
 }
 
 export const api = {

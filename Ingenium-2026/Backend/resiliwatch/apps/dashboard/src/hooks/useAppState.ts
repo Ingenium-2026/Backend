@@ -85,7 +85,7 @@ export function useAppState() {
       setState(prev => ({
         ...prev,
         telemetry: {
-          recent: [event, ...(prev.telemetry?.recent || [])].slice(0, 20),
+          recent: [event, ...(prev.telemetry?.recent || [])].slice(0, 10),
         },
       }));
     });
@@ -119,28 +119,37 @@ export function useAppState() {
   }, []);
 
   const simulateNormal = useCallback(async () => {
+    console.log('Fronted: Requesting Normal Simulation...');
     try {
       await api.simulateNormal();
+      console.log('Frontend: Normal Simulation Request Sent Success');
       toast({ title: 'Simulation Started', description: 'Normal traffic simulation running' });
     } catch (error) {
+      console.error('Frontend: Normal Simulation Failed', error);
       toast({ title: 'Error', description: 'Failed to start simulation', variant: 'destructive' });
     }
   }, []);
 
   const simulateBruteforce = useCallback(async () => {
+    console.log('Frontend: Requesting Bruteforce...');
     try {
       await api.simulateBruteforce();
+      console.log('Frontend: Bruteforce Request Sent Success');
       toast({ title: 'Attack Simulation', description: 'Bruteforce attack simulation started' });
     } catch (error) {
+      console.error('Frontend: Bruteforce Failed', error);
       toast({ title: 'Error', description: 'Failed to start simulation', variant: 'destructive' });
     }
   }, []);
 
   const simulateExfil = useCallback(async () => {
+    console.log('Frontend: Requesting Exfil...');
     try {
       await api.simulateExfil();
+      console.log('Frontend: Exfil Request Sent Success');
       toast({ title: 'Attack Simulation', description: 'Data exfiltration attack simulation started' });
     } catch (error) {
+      console.error('Frontend: Exfil Failed', error);
       toast({ title: 'Error', description: 'Failed to start simulation', variant: 'destructive' });
     }
   }, []);
@@ -159,9 +168,9 @@ export function useAppState() {
       const newValue = !state.settings.autoResponse;
       await api.updateSettings(newValue);
       setState(prev => ({ ...prev, settings: { autoResponse: newValue } }));
-      toast({ 
-        title: 'Settings Updated', 
-        description: `Auto Response ${newValue ? 'enabled' : 'disabled'}` 
+      toast({
+        title: 'Settings Updated',
+        description: `Auto Response ${newValue ? 'enabled' : 'disabled'}`
       });
     } catch (error) {
       toast({ title: 'Error', description: 'Failed to update settings', variant: 'destructive' });

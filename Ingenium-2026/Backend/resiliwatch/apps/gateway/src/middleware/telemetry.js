@@ -16,10 +16,10 @@ module.exports = (req, res, next) => {
             route: req.normalizedRoute || req.path,
             method: req.method,
             status: res.statusCode,
-            latencyMs: duration,
+            latency: duration,
             ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1',
-            userId: req.body.userId || req.headers['x-user-id'] || 'unknown',
-            role: req.headers['x-role'] || 'unknown',
+            userId: req.body.userId || req.headers['x-user-id'] || 'guest',
+            role: req.headers['x-role'] || 'public',
             bytesOut: parseInt(res.get('Content-Length') || 0),
             authResult: res.locals.authResult || (res.statusCode < 400 ? 'success' : 'fail')
         };
